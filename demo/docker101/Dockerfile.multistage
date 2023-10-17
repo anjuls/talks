@@ -1,0 +1,24 @@
+FROM ubuntu as builder
+WORKDIR /app
+COPY hello.c .
+RUN apt-get update -y && apt-get install -y gcc
+
+# build the hello binary
+
+# Note -static option is required to package the DLLs in hello binary
+# docker run -it hello:ubuntu bash
+# root@fe9d0189d17c:/app# ls -lrt
+# total 16
+# -rw-r--r-- 1 root root  122 Oct 15 08:35 hello.c
+# -rwxr-xr-x 1 root root 8872 Oct 15 08:40 hello
+# root@fe9d0189d17c:/app# ldd hello
+#         linux-vdso.so.1 (0x0000ffffa2edf000)
+#         libc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa2ce0000)
+#         /lib/ld-linux-aarch64.so.1 (0x0000ffffa2ea6000)
+RUN gcc -o hello  -static  hello.c
+
+FROM scratch
+WORKDIR /app
+COPY --from=builder /app/hello .
+CMD ["./hello"]
+
